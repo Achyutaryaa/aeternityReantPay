@@ -1,13 +1,182 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { toast } from "react-toastify";
 
-const AddProperty = () => {
+
+const AddProperty = ({  instance }) => {
 	const [formData, setFormData] = useState({
 		address: "",
 		rent: "",
 		name: "",
 	});
+	const [spendPromise, setSpendPromise] = useState(null);
+
+	let aci=[
+		{
+		  "namespace": {
+			"name": "ListInternal",
+			"typedefs": []
+		  }
+		},
+		{
+		  "namespace": {
+			"name": "List",
+			"typedefs": []
+		  }
+		},
+		{
+		  "namespace": {
+			"name": "String",
+			"typedefs": []
+		  }
+		},
+		{
+		  "contract": {
+			"functions": [
+			  {
+				"arguments": [],
+				"name": "init",
+				"payable": false,
+				"returns": "SmartRealEstate.state",
+				"stateful": false
+			  },
+			  {
+				"arguments": [
+				  {
+					"name": "name",
+					"type": "string"
+				  },
+				  {
+					"name": "price",
+					"type": "int"
+				  },
+				  {
+					"name": "property_address",
+					"type": "string"
+				  }
+				],
+				"name": "add_property",
+				"payable": false,
+				"returns": {
+				  "tuple": []
+				},
+				"stateful": true
+			  },
+			  {
+				"arguments": [],
+				"name": "getproperty",
+				"payable": false,
+				"returns": {
+				  "option": [
+					"SmartRealEstate.rent"
+				  ]
+				},
+				"stateful": false
+			  },
+			  {
+				"arguments": [
+				  {
+					"name": "owner_address",
+					"type": "address"
+				  },
+				  {
+					"name": "name",
+					"type": "string"
+				  }
+				],
+				"name": "pay_rent",
+				"payable": true,
+				"returns": {
+				  "tuple": []
+				},
+				"stateful": true
+			  },
+			  {
+				"arguments": [],
+				"name": "get_payment_status_byowner",
+				"payable": false,
+				"returns": {
+				  "option": [
+					"bool"
+				  ]
+				},
+				"stateful": false
+			  },
+			  {
+				"arguments": [
+				  {
+					"name": "owner_address",
+					"type": "address"
+				  },
+				  {
+					"name": "name",
+					"type": "string"
+				  }
+				],
+				"name": "get_tenant_address",
+				"payable": false,
+				"returns": {
+				  "option": [
+					"address"
+				  ]
+				},
+				"stateful": false
+			  },
+			  {
+				"arguments": [],
+				"name": "get_all_properties",
+				"payable": false,
+				"returns": "SmartRealEstate.state",
+				"stateful": false
+			  }
+			],
+			"kind": "contract_main",
+			"name": "SmartRealEstate",
+			"payable": false,
+			"state": {
+			  "map": [
+				"address",
+				"SmartRealEstate.rent"
+			  ]
+			},
+			"typedefs": [
+			  {
+				"name": "rent",
+				"typedef": {
+				  "record": [
+					{
+					  "name": "owner_address",
+					  "type": "address"
+					},
+					{
+					  "name": "tenant_address",
+					  "type": "address"
+					},
+					{
+					  "name": "price",
+					  "type": "int"
+					},
+					{
+					  "name": "is_paid",
+					  "type": "bool"
+					},
+					{
+					  "name": "name",
+					  "type": "string"
+					},
+					{
+					  "name": "property_address",
+					  "type": "string"
+					}
+				  ]
+				},
+				"vars": []
+			  }
+			]
+		  }
+		}
+	  ];
+
+	  let bytecode="cb_+QMrRgOgRmhjz8BvlqVsBB9mpuJD++o60uqgEu3DFiQbQx0e3mzAuQL9uQJU/kTWRB8ANwA3ABoOgi8AAQM//kWRHX0ANwCHAjcANwE3BkcARwAHF3d3VQIAGgoCgi8oggAHDAQBA6+CAAEAPysoAgBE/CMAAgICAP5H9Iz5BDcCRwB3NwAaCgCCLxiCAAcMFgwDr4IAAQA/DwIECD4EFARGOgYEACgsCAYgEAIHDAj7A6VQcm9wZXJ0eSBub3QgZm91bmQgZm9yIHRoZSBzcGVjaWZpZWQgbmFtZSgsBgYmAAcMDPsDUVJlbnQgaXMgYWxyZWFkeSBwYWlkKCwEBlMAIgAHDBIMAQIMA41Ob3QgZW5vdWdoIG1vbmV5IHRvIHBheSB0aGlzIHJlbnQ6IAIDEauIMtH7ACgsBAZlAQAp7hYGBv9VAhgprhoCFhgtmoKCABoBAz/7Ay1ObyBwcm9wZXJ0eSsYAABE/CMAAgICDwIECD4EFAT+f7jQVgA3AkcAd4cCNwA3AUcAGgoAgi8YggAHDAgMA6+CAAEAPw8CBAg+BAQGAQOvggABAD9GOgYEACgsAgZE/CMAAgICACsYAABE/CMAAgICDwIECD4EBAb+gcDkLAA3A3cHdzcAVQBVAAwBAgwDfwwBAAwBBCcMDA8CBFUALYqCggQBAz/+q4gy0QI3And3dzoUAAIA/sszczMANwCHAjcANwEXVQIAGgoCgi8oggAHDAgMA6+CAAEAPw8CBgg+BgQGAQOvggABAD9GOggGACgsBghE/CMAAgICACsoAgBE/CMAAgICDwIGCD4GBAb+6R0phgA3AGdHADcGRwBHAAcXd3cBAoK4oS8IEUTWRB8RaW5pdBFFkR19LWdldHByb3BlcnR5EUf0jPkhcGF5X3JlbnQRf7jQVklnZXRfdGVuYW50X2FkZHJlc3MRgcDkLDFhZGRfcHJvcGVydHkRq4gy0TkuU3RyaW5nLmNvbmNhdBHLM3MzaWdldF9wYXltZW50X3N0YXR1c19ieW93bmVyEekdKYZJZ2V0X2FsbF9wcm9wZXJ0aWVzgi8AhTcuNC4wAJX2j7o"
+
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -23,28 +192,33 @@ const AddProperty = () => {
 		console.log(formData.rent);
 		console.log(formData.address);
 
-		// 	try {
-		// 		const response = await axios.post("http://localhost:8000/api/adddetail", {
-		// 			address: formData.address,
-		// 			rent: formData.rent,
-		// 			name: formData.name,
-		// 		});
-
-		// 		console.log("Loan Request Success", response);
-		// 		toast.success("Loan request submitted successfully!");
-
-		// 		// Navigate to a different page upon successful loan request
-
-		// 		// Reset form data
-		// 		setFormData({
-		// 			address: "",
-		// 			rent: "",
-		// 			name: "",
-		// 		});
-		// 	} catch (error) {
-		// 		console.error("Loan Request Error", error.response?.data);
-		// 		toast.error(error.response?.data?.error || "Loan request failed");
-		// 	}
+		console.log(instance);
+		const contract = await instance.initializeContract({ aci, bytecode, address: "ct_mzdNPHxsu9cRhwMLqebBWQasZ6ctsH6wUPaif9MauKCydFeMk" })
+		const options1 = {
+			amount: 0,
+			callData: "",
+			fee: null,
+			gas: null,
+			gasPrice: 1000000000,
+		};
+		const args = [formData.name,formData.rent,formData.address];
+		const options = Object.fromEntries(
+			Object.entries(options1).filter(([, v]) => v != null),
+		);
+  
+		contract
+			?.$call("add_property",args, options)
+			.then((result) => {
+				console.log(result);
+				setSpendPromise(result.hash)
+				
+				
+				console.log(result);
+				
+				
+				
+  
+			});
 	};
 
 	return (
@@ -98,6 +272,12 @@ const AddProperty = () => {
 				>
 					Add this Property
 				</button>
+				{spendPromise && (
+        <div className="mt-4">
+          <div className="font-bold text-lg mb-2">Spend result</div>
+          <p className="text-gray-700">{spendPromise}</p>
+        </div>
+      )}
 			</form>
 		</div>
 	);

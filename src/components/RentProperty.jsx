@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const RentProperty  = () => {
+const RentProperty  = ({  instance }) => {
 	const [formData, setFormData] = useState({
 		address: "",
 		rent: "",
@@ -19,33 +19,13 @@ const RentProperty  = () => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		console.log(instance);
 
-		try {
-			const response = await axios.post("http://localhost:8000/api/adddetail", {
-				address: formData.address,
-				rent: formData.rent,
-				name: formData.name,
-			});
-
-			console.log("Loan Request Success", response);
-			toast.success("Loan request submitted successfully!");
-
-			// Navigate to a different page upon successful loan request
-
-			// Reset form data
-			setFormData({
-				address: "",
-				rent: "",
-				name: "",
-			});
-		} catch (error) {
-			console.error("Loan Request Error", error.response?.data);
-			toast.error(error.response?.data?.error || "Loan request failed");
-		}
+		
 	};
 
 	return (
-		<div className="h-screen rounded-lg">
+		<div className="h-screen rounded-lg my-6 mx-6">
 			<form
 				onSubmit={handleSubmit}
 				className="max-w-[400px] w-full bg-gray-900 p-8 px-8 border 2px white"
