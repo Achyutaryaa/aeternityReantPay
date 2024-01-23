@@ -189,10 +189,11 @@ const PayRent = ({ instance }) => {
 		const contract = await instance.initializeContract({ aci, bytecode, address: "ct_2Grjjk9MWmeWAazr8oC9mkAiki8nSKqVGJ3hAyDWCN9XVUtp8v" })
 		console.log(formData.name);
 		console.log(formData.address);
+		console.log(formData.amount)
 		console.log(instance);
 		console.log(contract);
 		const options1 = {
-			amount: 2000000000000000000,
+			amount: formData.amount,
 			callData: "",
 			fee: null,
 			gas: null,
@@ -238,7 +239,18 @@ const PayRent = ({ instance }) => {
 						placeholder="Enter name"
 					/>
 				</div>
-
+				<div className="flex flex-col text-gray-400 py-2">
+					<label>Amount</label>
+					<input
+						className="rounded-lg bg-gray-700 mt-2 p-2 focus:border-blue-500 focus:bg-gray-800 focus:outline-none"
+						type="Number"
+						name="amount"
+						value={formData.amount}
+						onChange={handleInputChange}
+						required
+						placeholder="Enter amount"
+					/>
+				</div>
 				<div className="flex flex-col text-gray-400 py-2">
 					<label>Address</label>
 					<input
